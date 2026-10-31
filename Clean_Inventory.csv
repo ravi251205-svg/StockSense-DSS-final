@@ -1,0 +1,88 @@
+Product_No,Store,Inventory_Start_Date,Inventory_End_Date,Qty_On_Hand,Warehouse_Qty,Stock_Unit_Cost_Price,Product_Description,Supplier,Stock Data Flag
+SKU0001,Main Supermarket,2026-03-26,2026-04-24,100.0,108,132.0,Tata Sampann Toor Dal 1kg,Sri Murugan Wholesale,OK
+SKU0002,Main Supermarket,2026-03-26,2026-04-24,159.0,512,116.0,Tata Sampann Moong Dal 1kg,South India FMCG Distributors,OK
+SKU0003,Main Supermarket,2026-03-26,2026-04-24,97.0,246,84.0,Tata Sampann Chana Dal 1kg,Metro Consumer Supplies,OK
+SKU0004,Main Supermarket,2026-03-26,2026-04-24,53.0,97,116.0,India Gate Basmati Rice 1kg,Metro Consumer Supplies,OK
+SKU0005,Main Supermarket,2026-03-26,2026-04-24,166.0,330,108.0,Daawat Basmati Rice 1kg,South India FMCG Distributors,OK
+SKU0006,Main Supermarket,2026-03-26,2026-04-24,21.0,41,238.0,Aashirvaad Atta 5kg,Sri Murugan Wholesale,OK
+SKU0007,Main Supermarket,2026-03-26,2026-04-24,68.0,128,229.0,Pillsbury Atta 5kg,National Foods & Homecare,OK
+SKU0008,Main Supermarket,2026-03-26,2026-04-24,170.0,342,137.0,Fortune Sunflower Oil 1L,Sri Murugan Wholesale,OK
+SKU0009,Main Supermarket,2026-03-26,2026-04-24,23.0,29,163.0,Freedom Groundnut Oil 1L,Metro Consumer Supplies,OK
+SKU0010,Main Supermarket,2026-03-26,2026-04-24,34.0,118,154.0,Saffola Gold Oil 1L,Sri Murugan Wholesale,OK
+SKU0011,Main Supermarket,2026-03-26,2026-04-24,28.0,88,31.0,Aachi Chilli Powder 100g,National Foods & Homecare,OK
+SKU0012,Main Supermarket,2026-03-26,2026-04-24,78.0,148,35.0,Aachi Sambar Powder 100g,Kaveri Retail Distributors,OK
+SKU0013,Main Supermarket,2026-03-26,2026-04-24,0.0,5,24.0,Aachi Turmeric Powder 100g,Sri Murugan Wholesale,OK
+SKU0014,Main Supermarket,2026-03-26,2026-04-24,152.0,278,37.0,Aachi Chicken Masala 100g,National Foods & Homecare,OK
+SKU0015,Main Supermarket,2026-03-26,2026-04-24,71.0,185,33.0,Sakthi Rasam Powder 100g,National Foods & Homecare,OK
+SKU0016,Main Supermarket,2026-03-26,2026-04-24,22.0,26,42.0,Sakthi Biryani Masala 100g,National Foods & Homecare,OK
+SKU0017,Main Supermarket,2026-03-26,2026-04-24,19.0,23,44.0,Everest Garam Masala 100g,Metro Consumer Supplies,OK
+SKU0018,Main Supermarket,2026-03-26,2026-04-24,63.0,204,47.0,MDH Kitchen King Masala 100g,Sri Murugan Wholesale,OK
+SKU0019,Main Supermarket,2026-03-26,2026-04-24,100.0,155,38.0,Catch Pepper Powder 50g,Kaveri Retail Distributors,OK
+SKU0020,Main Supermarket,2026-03-26,2026-04-24,104.0,191,39.0,Eastern Meat Masala 100g,Sri Murugan Wholesale,OK
+SKU0021,Main Supermarket,2026-03-26,2026-04-24,271.0,739,10.0,Maggi 2-Minute Noodles  pack,Kaveri Retail Distributors,OK
+SKU0022,Main Supermarket,2026-03-26,2026-04-24,268.0,280,10.0,Sunfeast Yippee Noodles pack,Sri Murugan Wholesale,OK
+SKU0023,Main Supermarket,2026-03-26,2026-04-24,31.0,34,86.0,MTR Ready-to-Eat Paneer Butter Masala 300g,Metro Consumer Supplies,OK
+SKU0024,Main Supermarket,2026-03-26,2026-04-24,111.0,257,91.0,MTR Dosa Mix 500g,South India FMCG Distributors,OK
+SKU0025,Main Supermarket,2026-03-26,2026-04-24,46.0,49,66.0,Gits Gulab Jamun Mix 200g,Kaveri Retail Distributors,OK
+SKU0026,Main Supermarket,2026-03-26,2026-04-24,19.0,62,98.0,Kellogg's Corn Flakes 250g,Sri Murugan Wholesale,OK
+SKU0027,Main Supermarket,2026-03-26,2026-04-24,55.0,190,151.0,Quaker Oats 1kg,Sri Murugan Wholesale,OK
+SKU0028,Main Supermarket,2026-03-26,2026-04-24,107.0,171,27.0,Britannia Good Day Biscuits 200g,South India FMCG Distributors,OK
+SKU0029,Main Supermarket,2026-03-26,2026-04-24,154.0,448,23.0,Parle G Gold Biscuits 200g,Sri Murugan Wholesale,OK
+SKU0030,Main Supermarket,2026-03-26,2026-04-24,93.0,233,31.0,Sunfeast Dark Fantasy Biscuits  pack,Metro Consumer Supplies,OK
+SKU0031,Main Supermarket,2026-03-26,2026-04-24,78.0,84,23.0,Oreo Chocolate Creme Biscuits 120g,Sri Murugan Wholesale,OK
+SKU0032,Main Supermarket,2026-03-26,2026-04-24,597.0,2229,15.0,lays Classic Salted Chips  pack,Kaveri Retail Distributors,OK
+SKU0033,Main Supermarket,2026-03-26,2026-04-24,76.0,196,15.0,Kurkure Masala Munch  pack,Metro Consumer Supplies,OK
+SKU0034,Main Supermarket,2026-03-26,2026-04-24,188.0,671,42.0,Haldiram's Aloo Bhujia 200g,Kaveri Retail Distributors,OK
+SKU0035,Main Supermarket,2026-03-26,2026-04-24,202.0,377,15.0,Bingo! Mad Angles  pack,National Foods & Homecare,OK
+SKU0036,Main Supermarket,2026-03-26,2026-04-24,158.0,171,30.0,Cadbury Dairy Milk Chocolate  pack,National Foods & Homecare,OK
+SKU0037,Main Supermarket,2026-03-26,2026-04-24,64.0,206,19.0,Nestle KitKat  pack,Sri Murugan Wholesale,OK
+SKU0038,Main Supermarket,2026-03-26,2026-04-24,218.0,363,112.0,Tata Tea Premium Tea 250g,Kaveri Retail Distributors,OK
+SKU0039,Main Supermarket,2026-03-26,2026-04-24,168.0,255,121.0,Red Label Natural Care Tea 250g,South India FMCG Distributors,OK
+SKU0040,Main Supermarket,2026-03-26,2026-04-24,56.0,137,139.0,Bru Instant Coffee 100g,Sri Murugan Wholesale,OK
+SKU0041,Main Supermarket,2026-03-26,2026-04-24,16.0,53,265.0,Nescafe Classic Coffee 100g,Metro Consumer Supplies,OK
+SKU0042,Main Supermarket,2026-03-26,2026-04-24,103.0,187,225.0,Complan Nutrition Drink 500g,National Foods & Homecare,OK
+SKU0043,Main Supermarket,2026-03-26,2026-04-24,175.0,588,207.0,Horlicks Health Drink 500g,Sri Murugan Wholesale,OK
+SKU0044,Main Supermarket,2026-03-26,2026-04-24,15.0,50,202.0,Boost Health Drink 500g,Kaveri Retail Distributors,OK
+SKU0045,Main Supermarket,2026-03-26,2026-04-24,190.0,521,84.0,Real Mixed Fruit Juice 1L,Metro Consumer Supplies,OK
+SKU0046,Main Supermarket,2026-03-26,2026-04-24,50.0,167,88.0,Tropicana Orange Juice 1L,Metro Consumer Supplies,OK
+SKU0047,Main Supermarket,2026-03-26,2026-04-24,62.0,68,22.0,Paper Boat Aam Panna  pack,Sri Murugan Wholesale,OK
+SKU0048,Main Supermarket,2026-03-26,2026-04-24,94.0,200,49.0,Amul Butter 100g,Sri Murugan Wholesale,OK
+SKU0049,Main Supermarket,2026-03-26,2026-04-24,130.0,250,116.0,Amul Cheese Slices 200g,Metro Consumer Supplies,OK
+SKU0050,Main Supermarket,2026-03-26,2026-04-24,983.0,1405,26.0,Amul Milk 500ml,Kaveri Retail Distributors,OK
+SKU0051,Main Supermarket,2026-03-26,2026-04-24,382.0,983,23.0,Aavin Toned Milk 500ml,Kaveri Retail Distributors,OK
+SKU0052,Main Supermarket,2026-03-26,2026-04-24,275.0,1084,30.0,Mother Dairy Curd 400g,South India FMCG Distributors,OK
+SKU0053,Main Supermarket,2026-03-26,2026-04-24,3.0,8,83.0,Milky Mist Paneer 200g,South India FMCG Distributors,OK
+SKU0054,Main Supermarket,2026-03-26,2026-04-24,37.0,57,48.0,Dove Cream Beauty Bathing Bar 100g,South India FMCG Distributors,OK
+SKU0055,Main Supermarket,2026-03-26,2026-04-24,60.0,92,26.0,Lux Soap 100g,South India FMCG Distributors,OK
+SKU0056,Main Supermarket,2026-03-26,2026-04-24,123.0,230,24.0,Lifebuoy Total Soap 100g,Kaveri Retail Distributors,OK
+SKU0057,Main Supermarket,2026-03-26,2026-04-24,158.0,517,29.0,Santoor Sandal & Turmeric Soap 100g,Metro Consumer Supplies,OK
+SKU0058,Main Supermarket,2026-03-26,2026-04-24,41.0,47,42.0,Pears Pure & Gentle Soap 100g,Sri Murugan Wholesale,OK
+SKU0059,Main Supermarket,2026-03-26,2026-04-24,488.0,1708,1.2,Clinic Plus Shampoo  sachet pack,Metro Consumer Supplies,OK
+SKU0060,Main Supermarket,2026-03-26,2026-04-24,224.0,283,112.0,Sunsilk Shampoo 180ml,Metro Consumer Supplies,OK
+SKU0061,Main Supermarket,2026-03-26,2026-04-24,20.0,45,148.0,Head & Shoulders Shampoo 180ml,National Foods & Homecare,OK
+SKU0062,Main Supermarket,2026-03-26,2026-04-24,113.0,128,80.0,Colgate Strong Teeth Toothpaste 150g,Metro Consumer Supplies,OK
+SKU0063,Main Supermarket,2026-03-26,2026-04-24,29.0,74,74.0,Closeup Red Hot Toothpaste 150g,Metro Consumer Supplies,OK
+SKU0064,Main Supermarket,2026-03-26,2026-04-24,135.0,347,72.0,Pepsodent Germicheck Toothpaste 150g,Kaveri Retail Distributors,OK
+SKU0065,Main Supermarket,2026-03-26,2026-04-24,118.0,425,96.0,Whisper Choice Sanitary Pads pack,Sri Murugan Wholesale,OK
+SKU0066,Main Supermarket,2026-03-26,2026-04-24,147.0,332,88.0,Stayfree Secure Sanitary Pads pack,Sri Murugan Wholesale,OK
+SKU0067,Main Supermarket,2026-03-26,2026-04-24,70.0,167,98.0,Surf Excel Easy Wash Detergent 1kg,Sri Murugan Wholesale,OK
+SKU0068,Main Supermarket,2026-03-26,2026-04-24,27.0,80,90.0,Tide Detergent Powder 1kg,South India FMCG Distributors,OK
+SKU0069,Main Supermarket,2026-03-26,2026-04-24,38.0,55,188.0,Ariel Matic Detergent 1kg,Kaveri Retail Distributors,OK
+SKU0070,Main Supermarket,2026-03-26,2026-04-24,160.0,454,18.0,Rin Detergent Bar  pack,National Foods & Homecare,OK
+SKU0071,Main Supermarket,2026-03-26,2026-04-24,127.0,164,18.0,Vim Dishwash Bar  pack,Sri Murugan Wholesale,OK
+SKU0072,Main Supermarket,2026-03-26,2026-04-24,156.0,624,87.0,Vim Dishwash Liquid 500ml,South India FMCG Distributors,OK
+SKU0073,Main Supermarket,2026-03-26,2026-04-24,50.0,140,80.0,Harpic Toilet Cleaner 500ml,Sri Murugan Wholesale,OK
+SKU0074,Main Supermarket,2026-03-26,2026-04-24,43.0,122,88.0,Lizol Floor Cleaner 500ml,Metro Consumer Supplies,OK
+SKU0075,Main Supermarket,2026-03-26,2026-04-24,121.0,258,72.0,Good Knight Fast Card Refill pack,Kaveri Retail Distributors,OK
+SKU0076,Main Supermarket,2026-03-26,2026-04-24,88.0,257,65.0,All Out Mosquito Refill 45ml,Sri Murugan Wholesale,OK
+SKU0077,Main Supermarket,2026-03-26,2026-04-24,56.0,162,235.0,Pampers Baby Dry Diapers pack,Sri Murugan Wholesale,OK
+SKU0078,Main Supermarket,2026-03-26,2026-04-24,22.0,62,110.0,Himalaya Baby Lotion 200ml,Sri Murugan Wholesale,OK
+SKU0079,Main Supermarket,2026-03-26,2026-04-24,22.0,46,102.0,Johnson's Baby Powder 200g,Sri Murugan Wholesale,OK
+SKU0080,Main Supermarket,2026-03-26,2026-04-24,96.0,229,112.0,Dabur Honey 250g,Metro Consumer Supplies,OK
+SKU0081,Main Supermarket,2026-03-26,2026-04-24,46.0,68,185.0,Dabur Chyawanprash 500g,South India FMCG Distributors,OK
+SKU0082,Main Supermarket,2026-03-26,2026-04-24,7.0,12,118.0,Himalaya Neem Face Wash 150ml,Metro Consumer Supplies,OK
+SKU0083,Main Supermarket,2026-03-26,2026-04-24,48.0,140,72.0,Patanjali Aloe Vera Gel 150ml,Sri Murugan Wholesale,OK
+SKU0084,Main Supermarket,2026-03-26,2026-04-24,10.0,13,55.0,Prestige Aluminium Foil 9m,Sri Murugan Wholesale,OK
+SKU0085,Main Supermarket,2026-03-26,2026-04-24,25.0,70,25.0,Eveready AA Batteries 2 pack,Metro Consumer Supplies,OK
+SKU0086,Main Supermarket,2026-03-26,2026-04-24,25.0,83,195.0,Whiskas Adult Cat Food 1kg,Sri Murugan Wholesale,OK
+SKU0087,Main Supermarket,2026-03-26,2026-04-24,6.0,19,142.0,Pedigree Adult Dog Food 1kg,Kaveri Retail Distributors,OK
