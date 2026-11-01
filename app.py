@@ -213,7 +213,7 @@ histories = build_daily_histories(sales_store)
 
 # Replenishment assumptions are explicitly user-adjustable.
 st.sidebar.header("StockSense Navigation")
-page = st.sidebar.radio("Go to", ["Home", "Analysis", "Forecast", "What-If Analysis"])
+page = st.sidebar.radio("Go to", ["Home", "Analysis", "ABC Analysis", "Forecast", "What-If Analysis"])
 st.sidebar.divider()
 st.sidebar.subheader("Planning assumptions")
 service_factor = st.sidebar.selectbox("Service level factor (Z)", [1.28, 1.645, 1.96, 2.33], index=1)
@@ -277,6 +277,35 @@ if analysis.empty:
     st.warning("No products were available for analysis.")
     st.stop()
 
+# ABC inventory classification using historical sales value.
+# A = products contributing to the first 70% of cumulative sales value;
+# B = next 20% (up to 90%); C = remaining products.
+abc_sales = (
+    sales_store.groupby("Product_No", as_index=False)["Sales_Amount"]
+    .sum()
+    .rename(columns={"Sales_Amount": "Historical Sales Value (₹)"})
+)
+analysis = analysis.merge(abc_sales, on="Product No", how="left")
+analysis["Historical Sales Value (₹)"] = analysis["Historical Sales Value (₹)"].fillna(0).clip(lower=0)
+abc_total = float(analysis["Historical Sales Value (₹)"].sum())
+if abc_total > 0:
+    analysis = analysis.sort_values("Historical Sales Value (₹)", ascending=False).reset_index(drop=True)
+    analysis["Sales Value Share (%)"] = analysis["Historical Sales Value (₹)"] / abc_total * 100
+    analysis["Cumulative Sales Share (%)"] = analysis["Sales Value Share (%)"].cumsum()
+    analysis["ABC Category"] = np.select(
+        [analysis["Cumulative Sales Share (%)"] <= 70,
+         analysis["Cumulative Sales Share (%)"] <= 90],
+        ["A", "B"], default="C"
+    )
+    # Ensure the product that crosses a threshold is included in that class.
+    previous_cumulative = analysis["Cumulative Sales Share (%)"].shift(1, fill_value=0)
+    analysis.loc[(analysis["ABC Category"] == "B") & (previous_cumulative < 70), "ABC Category"] = "A"
+    analysis.loc[(analysis["ABC Category"] == "C") & (previous_cumulative < 90), "ABC Category"] = "B"
+else:
+    analysis["Sales Value Share (%)"] = 0.0
+    analysis["Cumulative Sales Share (%)"] = 0.0
+    analysis["ABC Category"] = "C"
+
 product_options = analysis[["Product No", "Product"]].drop_duplicates()
 product_options["Selection"] = product_options["Product No"] + " | " + product_options["Product"].astype(str)
 
@@ -306,6 +335,13 @@ if page == "Home":
     k4.metric("Reorder required", f"{reorder_count:,}")
     k5.metric("Low-stock products", f"{low_count:,}")
     k6.metric("Estimated supplier purchase value", f"₹{purchase_value:,.2f}")
+
+    abc_counts = analysis["ABC Category"].value_counts()
+    st.subheader("ABC inventory classification")
+    abc_cols = st.columns(3)
+    for col, category in zip(abc_cols, ["A", "B", "C"]):
+        col.metric(f"Category {category} products", f"{int(abc_counts.get(category, 0)):,}")
+    st.caption("ABC classes are based on each product's share of historical sales value in the selected supermarket.")
 
     st.subheader("Stock status")
     status_counts = analysis["Status"].value_counts().rename_axis("Status").reset_index(name="Products")
@@ -362,6 +398,59 @@ elif page == "Analysis":
     st.download_button("Download Inventory Analysis CSV", analysis.to_csv(index=False).encode("utf-8"),
                        "stocksense_inventory_analysis.csv", "text/csv")
 
+elif page == "ABC Analysis":
+    st.header("ABC Inventory Classification")
+    st.write("ABC Analysis prioritises products according to their contribution to historical sales value. It helps managers focus inventory control on the products with the greatest sales-value contribution.")
+
+    if float(analysis["Historical Sales Value (₹)"].sum()) <= 0:
+        st.warning("ABC classification cannot be calculated because this supermarket has no positive historical sales value in the selected data.")
+    else:
+        abc_summary = (analysis.groupby("ABC Category", as_index=False)
+                       .agg(Products=("Product No", "count"),
+                            Sales_Value=("Historical Sales Value (₹)", "sum")))
+        abc_summary["Sales Value Share (%)"] = abc_summary["Sales_Value"] / analysis["Historical Sales Value (₹)"].sum() * 100
+        abc_summary["Sales_Value"] = abc_summary["Sales_Value"].map(lambda value: f"₹{value:,.2f}")
+        abc_summary["Sales Value Share (%)"] = abc_summary["Sales Value Share (%)"].map(lambda value: f"{value:.2f}%")
+
+        a1, a2, a3 = st.columns(3)
+        for col, category, description in zip(
+            [a1, a2, a3],
+            ["A", "B", "C"],
+            ["Highest sales-value contribution", "Moderate contribution", "Lowest contribution"]
+        ):
+            count = int((analysis["ABC Category"] == category).sum())
+            col.metric(f"Category {category}", f"{count} products")
+            col.caption(description)
+
+        st.subheader("Classification summary")
+        st.dataframe(abc_summary.rename(columns={"Sales_Value": "Historical Sales Value (₹)"}),
+                     use_container_width=True, hide_index=True)
+
+        st.subheader("Product-wise ABC classification")
+        abc_filter = st.multiselect("Select ABC category", ["A", "B", "C"], default=["A", "B", "C"])
+        abc_view = analysis[analysis["ABC Category"].isin(abc_filter)].copy()
+        abc_view = abc_view.sort_values("Historical Sales Value (₹)", ascending=False)
+        st.dataframe(abc_view[["Product No", "Product", "Historical Sales Value (₹)",
+                               "Sales Value Share (%)", "Cumulative Sales Share (%)", "ABC Category",
+                               "Store Stock", "Warehouse Stock", "Status"]].round(2),
+                     use_container_width=True, hide_index=True, height=430)
+
+        st.subheader("Sales value contribution by category")
+        chart_data = analysis.groupby("ABC Category", as_index=False)["Historical Sales Value (₹)"].sum()
+        st.plotly_chart(px.bar(chart_data, x="ABC Category", y="Historical Sales Value (₹)",
+                               color="ABC Category", title="Historical sales value by ABC category",
+                               template="plotly_dark"), use_container_width=True)
+
+        st.subheader("Inventory management guidance")
+        st.markdown("""
+        - **A items:** Give highest attention, monitor frequently and avoid stockouts.
+        - **B items:** Apply regular stock reviews and balanced replenishment.
+        - **C items:** Use simpler controls and avoid unnecessary overstocking.
+        """)
+        st.caption("Classification thresholds: A = cumulative sales value up to approximately 70%; B = next portion up to approximately 90%; C = remaining value. The product that crosses a threshold is retained in the category that reaches that threshold.")
+        st.download_button("Download ABC Analysis CSV", abc_view.to_csv(index=False).encode("utf-8"),
+                           "stocksense_abc_analysis.csv", "text/csv")
+
 elif page == "Forecast":
     st.header("Product Demand Forecast")
     st.write("Compare ARIMA, SARIMA and Moving Average on the same chronological test period, then generate the selected model's future demand forecast.")
@@ -382,40 +471,23 @@ elif page == "Forecast":
         train_data, test_data = daily_series.iloc[:-test_size], daily_series.iloc[-test_size:]
 
         def fit_statistical_forecast(data, model_name, steps):
-            # ARIMA models non-seasonal behaviour. SARIMA additionally models
-            # a weekly (7-day) pattern without seasonally differencing the data.
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 if model_name == "SARIMA":
-                    model = SARIMAX(
-                        data,
-                        order=(1, 0, 1),
-                        seasonal_order=(1, 0, 1, 7),
-                        enforce_stationarity=False,
-                        enforce_invertibility=False
-                    )
+                    fitted = SARIMAX(data, order=(1, 1, 1), seasonal_order=(1, 1, 1, 7),
+                                     enforce_stationarity=False, enforce_invertibility=False).fit(disp=False, maxiter=100)
                 else:
-                    model = SARIMAX(
-                        data,
-                        order=(1, 1, 1),
-                        seasonal_order=(0, 0, 0, 0),
-                        enforce_stationarity=False,
-                        enforce_invertibility=False
-                    )
-                fitted = model.fit(disp=False, maxiter=200)
-                prediction = fitted.get_forecast(steps=steps).predicted_mean
-
-            values = np.asarray(prediction, dtype=float)
-            values = np.nan_to_num(values, nan=0.0, posinf=0.0, neginf=0.0)
-            return np.maximum(0, values)
+                    fitted = SARIMAX(data, order=(1, 1, 1), seasonal_order=(0, 0, 0, 0),
+                                     enforce_stationarity=False, enforce_invertibility=False).fit(disp=False, maxiter=100)
+                pred = fitted.get_forecast(steps=steps).predicted_mean
+            return np.maximum(0, np.asarray(pred, dtype=float))
 
         def moving_average_forecast(data, steps):
-            # A simple moving-average forecast is intentionally constant:
-            # it repeats the average of the latest 30 observed days.
             level = max(0.0, float(data.tail(min(30, len(data))).mean()))
             return np.repeat(level, steps)
 
         model_names = ["ARIMA", "SARIMA", "Moving Average"]
+        test_predictions = {}
         future_predictions = {}
         metric_rows = []
         actual = test_data.to_numpy(dtype=float)
@@ -430,20 +502,12 @@ elif page == "Forecast":
                     else:
                         test_pred = fit_statistical_forecast(train_data, model_name, len(test_data))
                         future_pred = fit_statistical_forecast(daily_series, model_name, horizon)
-
+                    test_predictions[model_name] = test_pred
+                    future_predictions[model_name] = future_pred
                     mae = float(mean_absolute_error(actual, test_pred))
                     rmse = float(np.sqrt(mean_squared_error(actual, test_pred)))
-                    mape = (
-                        float(np.mean(np.abs((actual[nonzero] - test_pred[nonzero]) / actual[nonzero])) * 100)
-                        if nonzero.any() else np.nan
-                    )
-                    future_predictions[model_name] = future_pred
-                    metric_rows.append({
-                        "Model": model_name,
-                        "MAE": mae,
-                        "RMSE": rmse,
-                        "MAPE (%)": mape
-                    })
+                    mape = float(np.mean(np.abs((actual[nonzero] - test_pred[nonzero]) / actual[nonzero])) * 100) if nonzero.any() else np.nan
+                    metric_rows.append({"Model": model_name, "MAE": mae, "RMSE": rmse, "MAPE (%)": mape})
                 except Exception as model_error:
                     st.warning(f"{model_name} could not be fitted: {model_error}")
 
@@ -453,44 +517,18 @@ elif page == "Forecast":
             metrics_df = pd.DataFrame(metric_rows).sort_values("RMSE").reset_index(drop=True)
             best_model = str(metrics_df.iloc[0]["Model"])
             st.subheader("Forecast Model Comparison")
-            st.caption(
-                f"All models are evaluated on the same latest {test_size} days. "
-                "Lower MAE, RMSE and MAPE indicate better accuracy; MAPE excludes zero-sales days."
-            )
+            st.caption(f"All models are evaluated on the same latest {test_size} days. Lower MAE, RMSE and MAPE indicate better accuracy; MAPE excludes zero-sales days.")
             st.dataframe(metrics_df.round(3), use_container_width=True, hide_index=True)
             st.success(f"Best model by RMSE on this test period: {best_model}")
 
-            chosen_model = st.selectbox(
-                "Choose model for the future forecast",
-                metrics_df["Model"].tolist(),
-                index=metrics_df["Model"].tolist().index(best_model),
-                key="chosen_forecast_model"
-            )
-            future_dates = pd.date_range(
-                daily_series.index.max() + pd.Timedelta(days=1),
-                periods=horizon,
-                freq="D"
-            )
-            forecast = pd.DataFrame({
-                "Date": future_dates,
-                "Forecasted Demand": np.round(future_predictions[chosen_model], 2)
-            })
+            chosen_model = st.selectbox("Choose model for the future forecast", metrics_df["Model"].tolist(), index=metrics_df["Model"].tolist().index(best_model), key="chosen_forecast_model")
+            future_dates = pd.date_range(daily_series.index.max() + pd.Timedelta(days=1), periods=horizon, freq="D")
+            forecast = pd.DataFrame({"Date": future_dates, "Forecasted Demand": np.round(future_predictions[chosen_model], 2)})
 
             historical_plot = daily_series.tail(90).rename("Actual Sales").reset_index()
             historical_plot.columns = ["Date", "Actual Sales"]
-            fig = px.line(
-                historical_plot,
-                x="Date",
-                y="Actual Sales",
-                title=f"Historical Sales and {chosen_model} Forecast",
-                template="plotly_dark"
-            )
-            fig.add_scatter(
-                x=forecast["Date"],
-                y=forecast["Forecasted Demand"],
-                mode="lines+markers",
-                name=f"{chosen_model} Forecast"
-            )
+            fig = px.line(historical_plot, x="Date", y="Actual Sales", title=f"Historical Sales and {chosen_model} Forecast", template="plotly_dark")
+            fig.add_scatter(x=forecast["Date"], y=forecast["Forecasted Demand"], mode="lines+markers", name=f"{chosen_model} Forecast")
             st.plotly_chart(fig, use_container_width=True)
 
             chosen_metrics = metrics_df.loc[metrics_df["Model"] == chosen_model].iloc[0]
@@ -498,11 +536,7 @@ elif page == "Forecast":
             m1, m2, m3 = st.columns(3)
             m1.metric("MAE", f"{chosen_metrics['MAE']:.2f} units")
             m2.metric("RMSE", f"{chosen_metrics['RMSE']:.2f} units")
-            m3.metric(
-                "MAPE",
-                "N/A" if pd.isna(chosen_metrics["MAPE (%)"])
-                else f"{chosen_metrics['MAPE (%)']:.2f}%"
-            )
+            m3.metric("MAPE", "N/A" if pd.isna(chosen_metrics["MAPE (%)"]) else f"{chosen_metrics['MAPE (%)']:.2f}%")
 
             st.subheader("Future Demand Summary")
             f1, f2, f3 = st.columns(3)
@@ -510,30 +544,10 @@ elif page == "Forecast":
             f2.metric("Forecast Horizon", f"{horizon} days")
             f3.metric("Total Forecast Demand", f"{forecast['Forecasted Demand'].sum():.0f} units")
             st.dataframe(forecast, use_container_width=True, hide_index=True)
-            st.download_button(
-                "Download Forecast CSV",
-                forecast.to_csv(index=False).encode("utf-8"),
-                "stocksense_product_forecast.csv",
-                "text/csv"
-            )
-            st.download_button(
-                "Download Model Comparison CSV",
-                metrics_df.to_csv(index=False).encode("utf-8"),
-                "stocksense_model_comparison.csv",
-                "text/csv"
-            )
-            st.caption(
-                "ARIMA uses order (1,1,1) and may produce a flat multi-step forecast. "
-                "SARIMA uses order (1,0,1) with weekly seasonal order (1,0,1,7), "
-                "so it can represent a weekly pattern when one exists. "
-                "Moving Average repeats the latest 30-day mean by design. "
-                "These are baseline configurations, not automatically optimized parameters."
-            )
-            st.info(
-                "A forecast should not be forced to vary. If sales history has no reliable trend or weekly pattern, "
-                "a flat forecast can be statistically reasonable. Select the model with the best holdout accuracy "
-                "and review the forecast before making purchasing decisions."
-            )
+            st.download_button("Download Forecast CSV", forecast.to_csv(index=False).encode("utf-8"), "stocksense_product_forecast.csv", "text/csv")
+            st.download_button("Download Model Comparison CSV", metrics_df.to_csv(index=False).encode("utf-8"), "stocksense_model_comparison.csv", "text/csv")
+            st.caption("ARIMA uses order (1,1,1); SARIMA uses order (1,1,1) with weekly seasonal order (1,1,1,7); Moving Average uses the latest 30-day mean. These are baseline configurations, not automatically optimized parameters.")
+            st.info("The best model is selected by lowest RMSE on this holdout period only. Results can differ by product and forecast period. Forecasts are estimates, so review business conditions before ordering.")
 
 elif page == "What-If Analysis":
     st.header("What-If Scenario Analysis")
