@@ -382,23 +382,40 @@ elif page == "Forecast":
         train_data, test_data = daily_series.iloc[:-test_size], daily_series.iloc[-test_size:]
 
         def fit_statistical_forecast(data, model_name, steps):
+            # ARIMA models non-seasonal behaviour. SARIMA additionally models
+            # a weekly (7-day) pattern without seasonally differencing the data.
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 if model_name == "SARIMA":
-                    fitted = SARIMAX(data, order=(1, 1, 1), seasonal_order=(1, 1, 1, 7),
-                                     enforce_stationarity=False, enforce_invertibility=False).fit(disp=False, maxiter=100)
+                    model = SARIMAX(
+                        data,
+                        order=(1, 0, 1),
+                        seasonal_order=(1, 0, 1, 7),
+                        enforce_stationarity=False,
+                        enforce_invertibility=False
+                    )
                 else:
-                    fitted = SARIMAX(data, order=(1, 1, 1), seasonal_order=(0, 0, 0, 0),
-                                     enforce_stationarity=False, enforce_invertibility=False).fit(disp=False, maxiter=100)
-                pred = fitted.get_forecast(steps=steps).predicted_mean
-            return np.maximum(0, np.asarray(pred, dtype=float))
+                    model = SARIMAX(
+                        data,
+                        order=(1, 1, 1),
+                        seasonal_order=(0, 0, 0, 0),
+                        enforce_stationarity=False,
+                        enforce_invertibility=False
+                    )
+                fitted = model.fit(disp=False, maxiter=200)
+                prediction = fitted.get_forecast(steps=steps).predicted_mean
+
+            values = np.asarray(prediction, dtype=float)
+            values = np.nan_to_num(values, nan=0.0, posinf=0.0, neginf=0.0)
+            return np.maximum(0, values)
 
         def moving_average_forecast(data, steps):
+            # A simple moving-average forecast is intentionally constant:
+            # it repeats the average of the latest 30 observed days.
             level = max(0.0, float(data.tail(min(30, len(data))).mean()))
             return np.repeat(level, steps)
 
         model_names = ["ARIMA", "SARIMA", "Moving Average"]
-        test_predictions = {}
         future_predictions = {}
         metric_rows = []
         actual = test_data.to_numpy(dtype=float)
@@ -413,12 +430,20 @@ elif page == "Forecast":
                     else:
                         test_pred = fit_statistical_forecast(train_data, model_name, len(test_data))
                         future_pred = fit_statistical_forecast(daily_series, model_name, horizon)
-                    test_predictions[model_name] = test_pred
-                    future_predictions[model_name] = future_pred
+
                     mae = float(mean_absolute_error(actual, test_pred))
                     rmse = float(np.sqrt(mean_squared_error(actual, test_pred)))
-                    mape = float(np.mean(np.abs((actual[nonzero] - test_pred[nonzero]) / actual[nonzero])) * 100) if nonzero.any() else np.nan
-                    metric_rows.append({"Model": model_name, "MAE": mae, "RMSE": rmse, "MAPE (%)": mape})
+                    mape = (
+                        float(np.mean(np.abs((actual[nonzero] - test_pred[nonzero]) / actual[nonzero])) * 100)
+                        if nonzero.any() else np.nan
+                    )
+                    future_predictions[model_name] = future_pred
+                    metric_rows.append({
+                        "Model": model_name,
+                        "MAE": mae,
+                        "RMSE": rmse,
+                        "MAPE (%)": mape
+                    })
                 except Exception as model_error:
                     st.warning(f"{model_name} could not be fitted: {model_error}")
 
@@ -428,18 +453,44 @@ elif page == "Forecast":
             metrics_df = pd.DataFrame(metric_rows).sort_values("RMSE").reset_index(drop=True)
             best_model = str(metrics_df.iloc[0]["Model"])
             st.subheader("Forecast Model Comparison")
-            st.caption(f"All models are evaluated on the same latest {test_size} days. Lower MAE, RMSE and MAPE indicate better accuracy; MAPE excludes zero-sales days.")
+            st.caption(
+                f"All models are evaluated on the same latest {test_size} days. "
+                "Lower MAE, RMSE and MAPE indicate better accuracy; MAPE excludes zero-sales days."
+            )
             st.dataframe(metrics_df.round(3), use_container_width=True, hide_index=True)
             st.success(f"Best model by RMSE on this test period: {best_model}")
 
-            chosen_model = st.selectbox("Choose model for the future forecast", metrics_df["Model"].tolist(), index=metrics_df["Model"].tolist().index(best_model), key="chosen_forecast_model")
-            future_dates = pd.date_range(daily_series.index.max() + pd.Timedelta(days=1), periods=horizon, freq="D")
-            forecast = pd.DataFrame({"Date": future_dates, "Forecasted Demand": np.round(future_predictions[chosen_model], 2)})
+            chosen_model = st.selectbox(
+                "Choose model for the future forecast",
+                metrics_df["Model"].tolist(),
+                index=metrics_df["Model"].tolist().index(best_model),
+                key="chosen_forecast_model"
+            )
+            future_dates = pd.date_range(
+                daily_series.index.max() + pd.Timedelta(days=1),
+                periods=horizon,
+                freq="D"
+            )
+            forecast = pd.DataFrame({
+                "Date": future_dates,
+                "Forecasted Demand": np.round(future_predictions[chosen_model], 2)
+            })
 
             historical_plot = daily_series.tail(90).rename("Actual Sales").reset_index()
             historical_plot.columns = ["Date", "Actual Sales"]
-            fig = px.line(historical_plot, x="Date", y="Actual Sales", title=f"Historical Sales and {chosen_model} Forecast", template="plotly_dark")
-            fig.add_scatter(x=forecast["Date"], y=forecast["Forecasted Demand"], mode="lines+markers", name=f"{chosen_model} Forecast")
+            fig = px.line(
+                historical_plot,
+                x="Date",
+                y="Actual Sales",
+                title=f"Historical Sales and {chosen_model} Forecast",
+                template="plotly_dark"
+            )
+            fig.add_scatter(
+                x=forecast["Date"],
+                y=forecast["Forecasted Demand"],
+                mode="lines+markers",
+                name=f"{chosen_model} Forecast"
+            )
             st.plotly_chart(fig, use_container_width=True)
 
             chosen_metrics = metrics_df.loc[metrics_df["Model"] == chosen_model].iloc[0]
@@ -447,7 +498,11 @@ elif page == "Forecast":
             m1, m2, m3 = st.columns(3)
             m1.metric("MAE", f"{chosen_metrics['MAE']:.2f} units")
             m2.metric("RMSE", f"{chosen_metrics['RMSE']:.2f} units")
-            m3.metric("MAPE", "N/A" if pd.isna(chosen_metrics["MAPE (%)"]) else f"{chosen_metrics['MAPE (%)']:.2f}%")
+            m3.metric(
+                "MAPE",
+                "N/A" if pd.isna(chosen_metrics["MAPE (%)"])
+                else f"{chosen_metrics['MAPE (%)']:.2f}%"
+            )
 
             st.subheader("Future Demand Summary")
             f1, f2, f3 = st.columns(3)
@@ -455,10 +510,30 @@ elif page == "Forecast":
             f2.metric("Forecast Horizon", f"{horizon} days")
             f3.metric("Total Forecast Demand", f"{forecast['Forecasted Demand'].sum():.0f} units")
             st.dataframe(forecast, use_container_width=True, hide_index=True)
-            st.download_button("Download Forecast CSV", forecast.to_csv(index=False).encode("utf-8"), "stocksense_product_forecast.csv", "text/csv")
-            st.download_button("Download Model Comparison CSV", metrics_df.to_csv(index=False).encode("utf-8"), "stocksense_model_comparison.csv", "text/csv")
-            st.caption("ARIMA uses order (1,1,1); SARIMA uses order (1,1,1) with weekly seasonal order (1,1,1,7); Moving Average uses the latest 30-day mean. These are baseline configurations, not automatically optimized parameters.")
-            st.info("The best model is selected by lowest RMSE on this holdout period only. Results can differ by product and forecast period. Forecasts are estimates, so review business conditions before ordering.")
+            st.download_button(
+                "Download Forecast CSV",
+                forecast.to_csv(index=False).encode("utf-8"),
+                "stocksense_product_forecast.csv",
+                "text/csv"
+            )
+            st.download_button(
+                "Download Model Comparison CSV",
+                metrics_df.to_csv(index=False).encode("utf-8"),
+                "stocksense_model_comparison.csv",
+                "text/csv"
+            )
+            st.caption(
+                "ARIMA uses order (1,1,1) and may produce a flat multi-step forecast. "
+                "SARIMA uses order (1,0,1) with weekly seasonal order (1,0,1,7), "
+                "so it can represent a weekly pattern when one exists. "
+                "Moving Average repeats the latest 30-day mean by design. "
+                "These are baseline configurations, not automatically optimized parameters."
+            )
+            st.info(
+                "A forecast should not be forced to vary. If sales history has no reliable trend or weekly pattern, "
+                "a flat forecast can be statistically reasonable. Select the model with the best holdout accuracy "
+                "and review the forecast before making purchasing decisions."
+            )
 
 elif page == "What-If Analysis":
     st.header("What-If Scenario Analysis")
